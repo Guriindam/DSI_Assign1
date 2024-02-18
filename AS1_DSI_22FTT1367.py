@@ -11,16 +11,72 @@ import plotly.express as px
 
 
 df = pd.read_csv("Salary.csv")
-st.title("Salary Across Different Demographics")
+#st.title("Salary Across Different Demographics")
+job_title_counts = df['Job Title'].value_counts()
+#st.write(job_title_counts)
+
+#Removing job columns that only have 10 or less rows
+job1 = job_title_counts[job_title_counts <= 10].index
+# The ~ acts as a boolean button
+filtered_df = df[~df['Job Title'].isin(job1)]
+
+job_title_new_count = filtered_df['Job Title'].value_counts()
+
+#Filters
+with st.sidebar:
+    with st.form('Filters'):
+        st.header("Select Filter of Choosing:")
+        selected_job = st.selectbox("Select Job Title", filtered_df["Job Title"].unique())
+        selected_gender = st.selectbox("Select Gender", filtered_df['Gender'].unique())
+        selected_race = st.multiselect("Select Race :smiling_imp:", filtered_df["Race"].unique())
+        st.form_submit_button("submit") 
+        
+    filtered_job_gender = filtered_df[(filtered_df["Gender"] == selected_gender) & (filtered_df['Job Title'] == selected_job)]
+    filtered_job = filtered_df[filtered_df["Job Title"] == selected_job]
+    filtered_race = filtered_df[filtered_df["Race"].isin(selected_race)]
+    avg_salary = filtered_job_gender["Salary"].mean()
+    group_avg = filtered_df.groupby("Job Title")["Salary"].mean().reset_index()
+    filtered_group_avg = group_avg[group_avg['Job Title'].isin(filtered_race['Job Title'])]
+    top_salary = group_avg.loc[group_avg["Salary"].idxmax(), 'Salary']
+
+
+#FIRST VISUALIZATION:  Salary by Gender and Job Title
+
+with st.container():
+
+    st.subheader("Salary Bar chart by Gender and Job Title")
+    avg_chart = alt.Chart(filtered_job_gender).mark_point().encode(
+        x=alt.X('Salary:Q', title='Gender'),
+        y=alt.Y('Salary:Q', title='Salary'),
+    )
+    st.altair_chart(avg_chart, use_container_width= True)
+
+
+#Top Earning Job Titles Across Races using multiple select box on what race you want to compare to
+
+
+with st.container():
+    
+    race_visual = alt.Chart(filtered_group_avg).mark_bar().encode(
+            x=alt.X('Salary:Q', title='Average Salary'),
+            y=alt.Y('Job Title', title='Job  Title', sort='-x'),
+            
+            color="Job Title:N"  
+        )
+    st.altair_chart(race_visual, use_container_width= True)
 
 with st.sidebar:
     with st.form('money'):
         st.header("Select Filter of Choosing:")
-        selected_x_var = st.selectbox("x variable", df.columns)
-        selected_y_var = st.selectbox("y variable", df["Job Title"].unique())
+        selected_x_var = st.selectbox("x variable", filtered_df.columns)
+        selected_job = st.selectbox("Job Title", filtered_df["Job Title"].unique())
+        selected_gender = st.selectbox("Gender", filtered_df['Gender'].unique())
+
         st.form_submit_button("submit") 
         #st.header("Select Filter of Choosing:")
-    filtered_job = df[df["Job Title"] == selected_y_var]
+    filtered_job_gender = filtered_df[(filtered_df["Gender"] == selected_gender) & (filtered_df['Job Title'] == selected_job)]
+    filtered_job = filtered_df[filtered_df["Job Title"] == selected_job]
+    avg_salary = filtered_job_gender["Salary"].mean()
         
 
 #All Job Title Bar Chart
@@ -29,7 +85,7 @@ with st.container():
     
     st.subheader('Job Titles')
     st.write("This Bar Chart shows the different Job titles that can be found in the data set, the highlighted bar shows the most job in the data set")
-    jobtitle_count = df["Job Title"].value_counts().reset_index()
+    jobtitle_count = filtered_df["Job Title"].value_counts().reset_index()
     jobtitle_count.columns = ['Job Title', 'Count']
     popular_job = jobtitle_count.loc[jobtitle_count["Count"].idxmax(), 'Job Title']
 
@@ -67,14 +123,14 @@ with st.container():
     st.subheader("Gender Pie Chart")
     st.write("This Pie chart shows the percentage of Male and Female of the selected Job Title")
     filtered_gender_count = filtered_job["Gender"].value_counts().reset_index()
-    #gender_count = df["Gender"].value_counts().reset_index()
-    fig = px.pie(filtered_gender_count , values='Gender', names= df["Gender"].unique(), title='Male Female Percentage')
+    #gender_count = filtered_df["Gender"].value_counts().reset_index()
+    fig = px.pie(filtered_gender_count , values='Gender', names= filtered_df["Gender"].unique(), title='Male Female Percentage')
     st.plotly_chart(fig)
 
 
 with st.container():
 
-    average_salary = df.groupby('Job Title')['Salary'].mean().reset_index()
+    average_salary = filtered_df.groupby('Job Title')['Salary'].mean().reset_index()
     average_salary = average_salary.sort_values(by = 'Salary',ascending = False)
     top_10 = average_salary.head(10)
     avg_chart = alt.Chart(top_10).mark_bar().encode(
@@ -83,13 +139,6 @@ with st.container():
         color=alt.value('blue')
     )
     st.altair_chart(avg_chart, use_container_width= True)
-
-
-#Average salary for selected
-#Fix the first visualization                                                                                                                                            
-
-# do visualization not based on different column, do based on the inside
-
 
 
 with st.container():
@@ -103,21 +152,22 @@ with st.container():
 
     st.altair_chart(chart)
 
-    #with st.form('education filter'):
-        #st.write("Filter by Education Level")
-        #selected_level = st.selectbox('Education Level', df['Education Level'].unique)
-        #st.form_submit_button("submit") 
+with st.container():
 
-    #filtered_level = filtered_job[filtered_job['Education'] == selected_level]
+    st.subheader("Salary Bar chart by Gender and Job Title")
+    avg_chart = alt.Chart(filtered_job_gender).mark_point().encode(
+        x=alt.X('Salary:Q', title='Salary'),
+        y=alt.Y('Salary:Q', title='Salary'),
+    ).properties(width=500)
+    st.altair_chart(avg_chart)
 
 
-    #with st.container():
-        #st.subheader('Salary and Years Of Experience')
-        #fig3 = alt.Chart(filtered_job).mark_circle().encode(
-            #x=alt.X('Education', title='Education Level'),
-            #y=alt.Y('Salary', title='Salary'),
-            #color='Gender'
-        #).properties(width=500)
-        
-    #st.altair_chart(fig3)
+    
+#Average Salary by Gender and Job Title:
+    
 
+#Salary Distribution by Education Level and Country:
+#Top Earning Job Titles Across Races:
+#Gender Pay Gap by Job Title and Country
+#Salary Comparison Between Job Titles in Different Countries: 
+#Salary Growth Over Years of Experience for Specific Job Titles:
