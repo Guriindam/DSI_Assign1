@@ -22,6 +22,8 @@ filtered_df = df[~df['Job Title'].isin(job1)]
 
 job_title_new_count = filtered_df['Job Title'].value_counts()
 
+
+
 #Filters
 with st.sidebar:
     with st.form('Filters'):
