@@ -100,7 +100,7 @@ filtered_race_pie2 = filtered_df[filtered_df["Race"].isin(selected_race_pie2)]
 
 filtered_race_job_pie = filtered_job_pie2[filtered_job_pie2["Race"].isin(selected_race_pie2)]
 
-race_percentage = filtered_race_job_pie["Race"].value_counts(normalize=True) * 100
+race_percentage = filtered_race_job_pie["Race"].value_counts() * 100
 race_pie = px.pie(
     values=race_percentage.values,
     names=race_percentage.index,
