@@ -24,6 +24,39 @@ filtered_df = df[~df['Job Title'].isin(job1)]
 job_title_new_count = filtered_df['Job Title'].value_counts()
 
 
+with st.sidebar:
+    st.header("Select Job Title")
+    selected_job_gap = st.selectbox("Select Job Title 🧑🏻‍💻", filtered_df["Job Title"].unique())
+
+filtered_job_gap = filtered_df[filtered_df["Job Title"] == selected_job_gap]
+
+avg_salary_male = filtered_job_gap[filtered_job_gap['Gender'] == 'Male']['Salary'].mean()
+avg_salary_female = filtered_job_gap[filtered_job_gap['Gender'] == 'Female']['Salary'].mean()
+
+salary_gap = avg_salary_male - avg_salary_female
+
+st.write(f"Average Salary for Male: ${avg_salary_male:.2f}")
+st.write(f"Average Salary for Female: ${avg_salary_female:.2f}")
+st.write(f"Salary Gap: ${salary_gap:.2f}")
+
+with st.container():
+    st.subheader("Salary Gap between Male and Female for Selected Job")
+    gap_data = pd.DataFrame({
+        'Gender': ['Male', 'Female'],
+        'Average Salary': [avg_salary_male, avg_salary_female]
+    })
+
+    gap_chart = alt.Chart(gap_data).mark_bar().encode(
+        x='Gender',
+        y='Average Salary',
+        color=alt.Color('Gender').scale(scheme="lightgreyred")
+    ).properties(
+        title=f"Salary Gap between Male and Female for {selected_job_gap}"
+    )
+
+    st.altair_chart(gap_chart, use_container_width=True)
+
+
 # Filter 1
 
 with st.sidebar:
@@ -71,6 +104,7 @@ with st.sidebar:
 filtered_job_pie = filtered_df[filtered_df["Job Title"] == selected_job_pie]
 filtered_race_pie = filtered_df[filtered_df["Race"].isin(selected_race_pie)]
 
+filtered_race_job_pie = filtered_job_pie[filtered_job_pie["Race"].isin(selected_race_pie)]
 #SECOND VISUALIZATION:  Average Salary of Selected Job Title for Selected Race
 #THIRD VISUALIZATION:  Percentage of Race for Selected Job Title
 
@@ -94,7 +128,7 @@ with st.container():
 
      with col2:
         st.subheader("Percentage of Race for Selected Job Title")
-        race_percentage = filtered_race_pie["Race"].value_counts(normalize=True) * 100
+        race_percentage = filtered_race_job_pie["Race"].value_counts(normalize=True) * 100
         fig_pie = px.pie(
             values=race_percentage.values,
             names=race_percentage.index,
