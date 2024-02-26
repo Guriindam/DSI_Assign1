@@ -88,6 +88,8 @@ with st.container():
     avg_chart = alt.Chart(filtered_job_gender).mark_point().encode(
         x=alt.X('Salary:Q', title='Salary'),
         y=alt.Y('Salary:Q', title='Salary'),
+    ).properties(
+    title=f"{selected_gender} salary for {selected_job_gap}"
     )
     st.altair_chart(avg_chart, use_container_width= True)
 
@@ -132,9 +134,11 @@ with st.container():
             tooltip=[alt.Tooltip('Race:N', title='Race'), alt.Tooltip('Salary:Q', title='Average Salary', format='$,.2f')]
         ).properties(
             width=600,
-            height=400
+            height=400,
+            title=f"{selected_job_bar} Average Salary"
         ).configure_axisX(labelAngle=-45)
-
+        
+    
         st.altair_chart(avg_salary_race_chart, use_container_width=True)
 
      with col2:
